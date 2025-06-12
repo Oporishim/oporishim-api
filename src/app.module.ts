@@ -6,6 +6,7 @@ import { MICROSERVICES_CLIENTS } from './constants';
 import { UsersController } from './users/users.controller';
 import { AccountsController } from './accounts/accounts.controller';
 import { TodosController } from './todos/todos.controller';
+import { ContactsController } from './contacts/contacts.controller';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { TodosController } from './todos/todos.controller';
     UsersController,
     AccountsController,
     TodosController,
+    ContactsController,
   ],
   providers: [AppService],
 })

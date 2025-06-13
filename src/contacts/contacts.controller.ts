@@ -9,6 +9,8 @@ import {
   Post,
   Put,
   Res,
+  Delete,
+  Query,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Response } from 'express';
@@ -49,10 +51,13 @@ export class ContactsController {
   }
 
   @Get()
-  async findAll(@Res() resp: Response) {
+  async findAll(
+    @Query() query: { skip: number; limit: number },
+    @Res() resp: Response,
+  ) {
     try {
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'individual/findAll' }, {}),
+        this.contactServiceClient.send({ cmd: 'individual/findAll' }, query),
       );
 
       return success(
@@ -109,6 +114,30 @@ export class ContactsController {
       return success(
         resp,
         'Contact updated successfully!',
+        data,
+        HttpStatus.OK,
+      );
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string, @Res() resp: Response) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send({ cmd: 'individual/remove' }, { id }),
+      );
+
+      console.log(data);
+
+      return success(
+        resp,
+        'Contact deleted successfully!',
         data,
         HttpStatus.OK,
       );

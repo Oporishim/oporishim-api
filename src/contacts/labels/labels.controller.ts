@@ -1,16 +1,15 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
   Inject,
   Param,
   Post,
-  Put,
-  Res,
-  Delete,
   Query,
+  Res,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Response } from 'express';
@@ -19,8 +18,8 @@ import { MICROSERVICES_CLIENTS } from 'src/constants';
 import { success } from 'src/helpers/response.helper';
 import { ServiceErrorInterface } from 'src/interfaces/response.interface';
 
-@Controller('contacts-old')
-export class ContactsController {
+@Controller('contacts/labels')
+export class LabelsController {
   constructor(
     @Inject(MICROSERVICES_CLIENTS.CONTACT_SERVICE)
     private readonly contactServiceClient: ClientProxy,
@@ -28,18 +27,19 @@ export class ContactsController {
 
   @Post()
   async create(
-    @Body() body: { name: string; email: string; phone: string },
-    @Res() resp: Response,
+    @Body() body: { name: string; description?: string },
+    @Res() res: Response,
   ) {
     try {
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'individual/create' }, body),
+        this.contactServiceClient.send({ cmd: 'labels/create' }, body),
       );
+
       return success(
-        resp,
-        'Contact has been created successfully!',
+        res,
+        'Label has been created successfully!',
         data,
-        HttpStatus.OK,
+        HttpStatus.CREATED,
       );
     } catch (error: unknown) {
       const serviceError = error as ServiceErrorInterface;
@@ -53,16 +53,16 @@ export class ContactsController {
   @Get()
   async findAll(
     @Query() query: { skip: number; limit: number },
-    @Res() resp: Response,
+    @Res() res: Response,
   ) {
     try {
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'individual/findAll' }, query),
+        this.contactServiceClient.send({ cmd: 'labels/findAll' }, query),
       );
 
       return success(
-        resp,
-        'All contacts fetched successfully!',
+        res,
+        'All labels fetched successfully!',
         data,
         HttpStatus.OK,
       );
@@ -76,44 +76,15 @@ export class ContactsController {
   }
 
   @Get(':id')
-  async findOne(@Res() resp: Response, @Param('id') id: string) {
+  async findOne(@Param('id') id: string, @Res() res: Response) {
     try {
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'individual/findOne' }, { id }),
+        this.contactServiceClient.send({ cmd: 'labels/findOne' }, { id: +id }),
       );
 
       return success(
-        resp,
-        'Contact fetched successfully!',
-        data,
-        HttpStatus.OK,
-      );
-    } catch (error: unknown) {
-      const serviceError = error as ServiceErrorInterface;
-      throw new HttpException(
-        serviceError,
-        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
-  @Put(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() body: { firstName: string; lastName: string },
-    @Res() resp: Response,
-  ) {
-    try {
-      const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send(
-          { cmd: 'individual/update' },
-          { id, body },
-        ),
-      );
-
-      return success(
-        resp,
-        'Contact updated successfully!',
+        res,
+        'Label has been fetched successfully!',
         data,
         HttpStatus.OK,
       );
@@ -127,17 +98,15 @@ export class ContactsController {
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string, @Res() resp: Response) {
+  async remove(@Param('id') id: string, @Res() res: Response) {
     try {
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'individual/remove' }, { id }),
+        this.contactServiceClient.send({ cmd: 'labels/remove' }, { id: +id }),
       );
 
-      console.log(data);
-
       return success(
-        resp,
-        'Contact deleted successfully!',
+        res,
+        'Label has been deleted successfully!',
         data,
         HttpStatus.OK,
       );

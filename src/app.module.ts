@@ -7,6 +7,9 @@ import { UsersController } from './users/users.controller';
 import { AccountsController } from './accounts/accounts.controller';
 import { TodosController } from './todos/todos.controller';
 import { ContactsController } from './contacts/contacts.controller';
+import { BusinessesController } from './contacts/businesses/businesses.controller';
+import { PeoplesController } from './contacts/peoples/peoples.controller';
+import { LabelsController } from './contacts/labels/labels.controller';
 
 @Module({
   imports: [
@@ -35,6 +38,9 @@ import { ContactsController } from './contacts/contacts.controller';
     AccountsController,
     TodosController,
     ContactsController,
+    BusinessesController,
+    PeoplesController,
+    LabelsController,
   ],
   providers: [AppService],
 })

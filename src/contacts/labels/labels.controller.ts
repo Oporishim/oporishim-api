@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  Patch,
   Post,
   Query,
   Res,
@@ -85,6 +86,34 @@ export class LabelsController {
       return success(
         res,
         'Label has been fetched successfully!',
+        data,
+        HttpStatus.OK,
+      );
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() body: { name: string; description?: string },
+    @Res() res: Response,
+  ) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send(
+          { cmd: 'labels/update' },
+          { id: Number(id), ...body },
+        ),
+      );
+      return success(
+        res,
+        'Label has been updated successfully!',
         data,
         HttpStatus.OK,
       );

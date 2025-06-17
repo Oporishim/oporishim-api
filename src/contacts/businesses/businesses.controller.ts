@@ -1,10 +1,14 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   HttpException,
   HttpStatus,
   Inject,
+  Param,
   Post,
+  Query,
   Res,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
@@ -33,6 +37,81 @@ export class BusinessesController {
       return success(
         resp,
         'Business has been created successfully!',
+        data,
+        HttpStatus.OK,
+      );
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get()
+  async findAll(
+    @Query() query: { skip: number; limit: number },
+    @Res() res: Response,
+  ) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send({ cmd: 'businesses/findAll' }, query),
+      );
+
+      return success(
+        res,
+        'All businesses fetched successfully!',
+        data,
+        HttpStatus.OK,
+      );
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send(
+          { cmd: 'businesses/findOne' },
+          { id: +id },
+        ),
+      );
+
+      return success(
+        res,
+        'Business has been fetched successfully!',
+        data,
+        HttpStatus.OK,
+      );
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send(
+          { cmd: 'businesses/remove' },
+          { id: +id },
+        ),
+      );
+
+      return success(
+        res,
+        'Business has been deleted successfully!',
         data,
         HttpStatus.OK,
       );

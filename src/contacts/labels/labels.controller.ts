@@ -21,10 +21,14 @@ import { ServiceErrorInterface } from 'src/interfaces/response.interface';
 
 @Controller('contacts/labels')
 export class LabelsController {
+  private options: Record<string, any>;
+
   constructor(
     @Inject(MICROSERVICES_CLIENTS.CONTACT_SERVICE)
     private readonly contactServiceClient: ClientProxy,
-  ) {}
+  ) {
+    this.options = { businessId: 1, appId: 1 };
+  }
 
   @Post()
   async create(
@@ -57,8 +61,13 @@ export class LabelsController {
     @Res() res: Response,
   ) {
     try {
+      this.options = {
+        ...this.options,
+        ...query,
+      };
+
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'labels/findAll' }, query),
+        this.contactServiceClient.send({ cmd: 'labels/findAll' }, this.options),
       );
 
       return success(
@@ -79,8 +88,13 @@ export class LabelsController {
   @Get(':id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
     try {
+      this.options = {
+        ...this.options,
+        id: +id,
+      };
+
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'labels/findOne' }, { id: +id }),
+        this.contactServiceClient.send({ cmd: 'labels/findOne' }, this.options),
       );
 
       return success(
@@ -108,9 +122,10 @@ export class LabelsController {
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'labels/update' },
-          { id: Number(id), ...body },
+          { id: Number(id), ...body, ...this.options },
         ),
       );
+
       return success(
         res,
         'Label has been updated successfully!',
@@ -129,8 +144,13 @@ export class LabelsController {
   @Delete(':id')
   async remove(@Param('id') id: string, @Res() res: Response) {
     try {
+      this.options = {
+        ...this.options,
+        id: +id,
+      };
+
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'labels/remove' }, { id: +id }),
+        this.contactServiceClient.send({ cmd: 'labels/remove' }, this.options),
       );
 
       return success(

@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  Patch,
   Post,
   Query,
   Res,
@@ -38,7 +39,7 @@ export class BusinessesController {
         resp,
         'Business has been created successfully!',
         data,
-        HttpStatus.OK,
+        HttpStatus.CREATED,
       );
     } catch (error: unknown) {
       const serviceError = error as ServiceErrorInterface;
@@ -51,12 +52,23 @@ export class BusinessesController {
 
   @Get()
   async findAll(
-    @Query() query: { skip: number; limit: number },
+    @Query()
+    query: { skip: number; limit: number; businessId?: number; appId?: number },
     @Res() res: Response,
   ) {
     try {
+      // Add business Id & App Id
+      const conditions = {
+        ...query,
+        businessId: 1,
+        appId: 1,
+      };
+
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'businesses/findAll' }, query),
+        this.contactServiceClient.send(
+          { cmd: 'businesses/findAll' },
+          conditions,
+        ),
       );
 
       return success(
@@ -99,6 +111,34 @@ export class BusinessesController {
     }
   }
 
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() body: { name: string; description?: string },
+    @Res() res: Response,
+  ) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send(
+          { cmd: 'businesses/update' },
+          { id: Number(id), ...body },
+        ),
+      );
+      return success(
+        res,
+        'Business has been updated successfully!',
+        data,
+        HttpStatus.OK,
+      );
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   @Delete(':id')
   async remove(@Param('id') id: string, @Res() res: Response) {
     try {
@@ -112,6 +152,31 @@ export class BusinessesController {
       return success(
         res,
         'Business has been deleted successfully!',
+        data,
+        HttpStatus.OK,
+      );
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get('/recover/:id')
+  async recover(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send(
+          { cmd: 'businesses/recover' },
+          { id: +id },
+        ),
+      );
+
+      return success(
+        res,
+        'Business has been recovered successfully!',
         data,
         HttpStatus.OK,
       );

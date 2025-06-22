@@ -1,11 +1,14 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
   Inject,
+  Param,
   Post,
+  Put,
   Query,
   Res,
 } from '@nestjs/common';
@@ -63,6 +66,66 @@ export class PeoplesController {
         data,
         HttpStatus.OK,
       );
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get(':id')
+  async findOne(@Res() resp: Response, @Param('id') id: string) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send({ cmd: 'individual/findOne' }, { id }),
+      );
+
+      return success(resp, 'People fetched successfully!', data, HttpStatus.OK);
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() body: { firstName: string; lastName: string },
+    @Res() resp: Response,
+  ) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send(
+          { cmd: 'individual/update' },
+          { id, body },
+        ),
+      );
+
+      return success(resp, 'People updated successfully!', data, HttpStatus.OK);
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string, @Res() resp: Response) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send({ cmd: 'individual/remove' }, { id }),
+      );
+
+      console.log(data);
+
+      return success(resp, 'People deleted successfully!', data, HttpStatus.OK);
     } catch (error: unknown) {
       const serviceError = error as ServiceErrorInterface;
       throw new HttpException(

@@ -21,10 +21,14 @@ import { ServiceErrorInterface } from 'src/interfaces/response.interface';
 
 @Controller('contacts/businesses')
 export class BusinessesController {
+  private options: Record<string, any>;
+
   constructor(
     @Inject(MICROSERVICES_CLIENTS.CONTACT_SERVICE)
     private readonly contactServiceClient: ClientProxy,
-  ) {}
+  ) {
+    this.options = { businessId: 1, appId: 1 };
+  }
 
   @Post()
   async create(
@@ -58,17 +62,13 @@ export class BusinessesController {
   ) {
     try {
       // Add business Id & App Id
-      const conditions = {
+      const options = {
         ...query,
-        businessId: 1,
-        appId: 1,
+        ...this.options,
       };
 
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send(
-          { cmd: 'businesses/findAll' },
-          conditions,
-        ),
+        this.contactServiceClient.send({ cmd: 'businesses/findAll' }, options),
       );
 
       return success(
@@ -89,10 +89,15 @@ export class BusinessesController {
   @Get(':id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
     try {
+      this.options = {
+        ...this.options,
+        id: +id,
+      };
+
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'businesses/findOne' },
-          { id: +id },
+          this.options,
         ),
       );
 
@@ -121,7 +126,7 @@ export class BusinessesController {
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'businesses/update' },
-          { id: Number(id), ...body },
+          { id: Number(id), ...body, ...this.options },
         ),
       );
       return success(

@@ -150,7 +150,7 @@ export class BusinessesController {
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'businesses/remove' },
-          { id: +id },
+          { id: +id, ...this.options },
         ),
       );
 
@@ -175,7 +175,7 @@ export class BusinessesController {
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'businesses/recover' },
-          { id: +id },
+          { id: +id, ...this.options },
         ),
       );
 

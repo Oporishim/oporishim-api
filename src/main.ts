@@ -11,6 +11,6 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 4000);
 
   console.log(`Application is running on: ${await app.getUrl()}`);
-  console.log('Auth Microservice is running on port 4000');
+  console.log('API gateway is running on port 4000');
 }
 void bootstrap();

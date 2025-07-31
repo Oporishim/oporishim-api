@@ -85,6 +85,37 @@ export class PeoplesController {
     }
   }
 
+  @Get('/deleted')
+  async deletedAll(
+    @Query() query: { page: number; limit: number },
+    @Res() res: Response,
+  ) {
+    try {
+      const data = await firstValueFrom<Response>(
+        this.contactServiceClient.send(
+          { cmd: 'individual/deleted' },
+          {
+            ...query,
+            ...this.options,
+          },
+        ),
+      );
+
+      return success(
+        res,
+        'All deleted peoples fetched successfully!',
+        data,
+        HttpStatus.OK,
+      );
+    } catch (error: unknown) {
+      const serviceError = error as ServiceErrorInterface;
+      throw new HttpException(
+        serviceError,
+        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   @Get(':id')
   async findOne(@Res() resp: Response, @Param('id') id: string) {
     try {
@@ -115,7 +146,7 @@ export class PeoplesController {
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'individual/update' },
-          { id, body },
+          { id: Number(id), ...body, ...this.options },
         ),
       );
 

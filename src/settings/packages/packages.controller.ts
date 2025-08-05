@@ -22,7 +22,7 @@ import { ServiceErrorInterface } from 'src/interfaces/response.interface';
 @Controller('settings/packages')
 export class PackagesController {
   constructor(
-    @Inject(MICROSERVICES_CLIENTS.AUTH_SERVICE)
+    @Inject(MICROSERVICES_CLIENTS.ACCOUNT_SERVICE)
     private readonly packageServiceClient: ClientProxy,
   ) {}
 

@@ -13,7 +13,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { catchError, firstValueFrom } from 'rxjs';
 import { MICROSERVICES_CLIENTS } from 'src/constants';
-import { AuthGuard, RequestWithUser } from 'src/guards/auth.guard';
+import { AuthGuard, RequestWithUser } from 'src/guards/auth/auth.guard';
 
 interface UserResponse {
   id: number;
@@ -30,7 +30,7 @@ export class UsersController {
 
   @Post()
   createUser(@Body() user: unknown) {
-    return this.accountServiceClient.send({ cmd: 'users/create' }, user).pipe(
+    return this.accountServiceClient.send({ cmd: 'user/create' }, user).pipe(
       catchError((error: any) => {
         throw new HttpException(error as Record<string, any>, 400);
       }),
@@ -45,7 +45,7 @@ export class UsersController {
     }
 
     const user = this.accountServiceClient.send<UserResponse>(
-      { cmd: 'users/findOne' },
+      { cmd: 'user/findOne' },
       +req.user.userId,
     );
 
@@ -54,6 +54,6 @@ export class UsersController {
 
   @Get(':id')
   getUser(@Param('id') id: number) {
-    return this.accountServiceClient.send({ cmd: 'users/findOne' }, +id);
+    return this.accountServiceClient.send({ cmd: 'user/findOne' }, +id);
   }
 }

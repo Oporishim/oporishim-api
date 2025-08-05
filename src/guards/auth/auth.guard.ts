@@ -24,7 +24,7 @@ export interface RequestWithUser {
 export class AuthGuard implements CanActivate {
   constructor(
     @Inject(MICROSERVICES_CLIENTS.ACCOUNT_SERVICE)
-    private readonly accountServiceClient: ClientProxy,
+    private readonly authServiceClient: ClientProxy,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -36,9 +36,8 @@ export class AuthGuard implements CanActivate {
     if (!authHeader) throw new UnauthorizedException('Missing token!');
 
     const token = authHeader.split(' ')[1];
-
     const result = await firstValueFrom<AuthVerifyResponse>(
-      this.accountServiceClient.send({ cmd: 'auth/validate-token' }, token),
+      this.authServiceClient.send({ cmd: 'auth/validate-token' }, token),
     );
 
     if (!result.valid) throw new UnauthorizedException('Invalid token!');

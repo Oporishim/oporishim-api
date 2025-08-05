@@ -18,7 +18,7 @@ import { AuthController } from './auth/auth.controller';
   imports: [
     ClientsModule.register([
       {
-        name: MICROSERVICES_CLIENTS.AUTH_SERVICE,
+        name: MICROSERVICES_CLIENTS.ACCOUNT_SERVICE,
         transport: Transport.TCP,
         options: {
           host: '127.0.0.1',
@@ -31,14 +31,6 @@ import { AuthController } from './auth/auth.controller';
         options: {
           host: '127.0.0.1',
           port: 4002,
-        },
-      },
-      {
-        name: MICROSERVICES_CLIENTS.ACCOUNT_SERVICE,
-        transport: Transport.TCP,
-        options: {
-          host: '127.0.0.1',
-          port: 4003,
         },
       },
     ]),

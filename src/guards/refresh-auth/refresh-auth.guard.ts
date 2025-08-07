@@ -11,13 +11,20 @@ import { MICROSERVICES_CLIENTS } from 'src/constants';
 
 export interface AuthVerifyResponse {
   valid: boolean;
-  userId?: string;
+  subscriberId: string | number;
+  appId: string | number;
+  userId: string | number;
   role?: string;
 }
 
 export interface RequestWithUser {
   headers: { authorization?: string };
-  user?: { userId?: string; role?: string };
+  user?: {
+    subscriberId: string | number;
+    userId: string | number;
+    appId: string | number;
+    role?: string;
+  };
 }
 
 @Injectable()
@@ -47,8 +54,10 @@ export class RefreshAuthGuard implements CanActivate {
       throw new UnauthorizedException('Invalid refresh token!');
 
     request.user = {
+      subscriberId: result.subscriberId,
+      appId: result.appId,
       userId: result.userId,
-      role: result.role,
+      role: result.role as string,
     };
 
     return true;

@@ -10,12 +10,16 @@ import {
   Post,
   Put,
   Query,
+  Req,
   Res,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Response } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { MICROSERVICES_CLIENTS } from 'src/constants';
+import { AuthGuard, RequestWithUser } from 'src/guards/auth/auth.guard';
 import { success } from 'src/helpers/response.helper';
 import { ServiceErrorInterface } from 'src/interfaces/response.interface';
 
@@ -30,15 +34,29 @@ export class PeoplesController {
     this.options = { businessId: 1, appId: 1 };
   }
 
+  @UseGuards(AuthGuard)
   @Post()
   async create(
     @Body() body: { name: string; email: string; phone: string },
+    @Req() req: RequestWithUser,
     @Res() resp: Response,
   ) {
     try {
+      if (!req.user?.userId)
+        throw new UnauthorizedException('User not authenticated');
+
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'individual/create' }, body),
+        this.contactServiceClient.send(
+          { cmd: 'peoples/create' },
+          {
+            ...body,
+            userId: req.user.userId,
+            appId: req.user.appId,
+            subscriberId: req.user.subscriberId,
+          },
+        ),
       );
+
       return success(
         resp,
         'People has been created successfully!',

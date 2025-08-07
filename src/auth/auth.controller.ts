@@ -62,7 +62,7 @@ export class AuthController {
 
   @Post('/signin')
   async signin(
-    @Body() body: { email: string; password: string },
+    @Body() body: { email: string; password: string; appId: number },
     @Res() resp: Response,
   ) {
     try {
@@ -86,8 +86,6 @@ export class AuthController {
     try {
       if (!req.user?.userId)
         throw new UnauthorizedException('User not authenticated');
-
-      console.log(req.user);
 
       const data = await firstValueFrom<Response>(
         this.authServiceClient.send({ cmd: 'auth/signout' }, +req.user.userId),
@@ -113,7 +111,10 @@ export class AuthController {
       const data = await firstValueFrom<Response>(
         this.authServiceClient.send(
           { cmd: 'auth/refresh-token' },
-          +req.user.userId,
+          {
+            userId: +req.user.userId,
+            appId: req.user.appId,
+          },
         ),
       );
 

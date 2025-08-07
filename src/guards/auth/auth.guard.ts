@@ -11,13 +11,20 @@ import { MICROSERVICES_CLIENTS } from 'src/constants';
 
 export interface AuthVerifyResponse {
   valid: boolean;
-  userId?: string;
+  subscriberId: string | number;
+  userId: string;
+  appId: string;
   role?: string;
 }
 
 export interface RequestWithUser {
   headers: { authorization?: string };
-  user?: { userId?: string; role?: string };
+  user?: {
+    subscriberId: string | number;
+    userId: string | number;
+    appId: string | number;
+    role?: string;
+  };
 }
 
 @Injectable()
@@ -43,8 +50,10 @@ export class AuthGuard implements CanActivate {
     if (!result.valid) throw new UnauthorizedException('Invalid token!');
 
     request.user = {
+      subscriberId: result.subscriberId,
       userId: result.userId,
-      role: result.role,
+      appId: result.appId,
+      role: result.role as string,
     };
 
     return true;

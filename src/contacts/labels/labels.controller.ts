@@ -10,12 +10,16 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   Res,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Response } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { MICROSERVICES_CLIENTS } from 'src/constants';
+import { AuthGuard, RequestWithUser } from 'src/guards/auth/auth.guard';
 import { success } from 'src/helpers/response.helper';
 import { ServiceErrorInterface } from 'src/interfaces/response.interface';
 
@@ -30,14 +34,27 @@ export class LabelsController {
     this.options = { businessId: 1, appId: 1 };
   }
 
+  @UseGuards(AuthGuard)
   @Post()
   async create(
     @Body() body: { name: string; description?: string },
+    @Req() req: RequestWithUser,
     @Res() res: Response,
   ) {
     try {
+      if (!req.user?.userId)
+        throw new UnauthorizedException('User not authenticated');
+
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'labels/create' }, body),
+        this.contactServiceClient.send(
+          { cmd: 'labels/create' },
+          {
+            ...body,
+            appId: req.user.appId,
+            userId: req.user.userId,
+            subscriberId: req.user.subscriberId,
+          },
+        ),
       );
 
       return success(
@@ -55,19 +72,27 @@ export class LabelsController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   async findAll(
-    @Query() query: { skip: number; limit: number },
+    @Query() query: { skip: number; limit: number; name?: string },
+    @Req() req: RequestWithUser,
     @Res() res: Response,
   ) {
     try {
-      this.options = {
-        ...this.options,
-        ...query,
-      };
+      if (!req.user?.userId)
+        throw new UnauthorizedException('User not authenticated');
 
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'labels/findAll' }, this.options),
+        this.contactServiceClient.send(
+          { cmd: 'labels/findAll' },
+          {
+            ...query,
+            appId: req.user.appId,
+            userId: req.user.userId,
+            subscriberId: req.user.subscriberId,
+          },
+        ),
       );
 
       return success(
@@ -85,16 +110,27 @@ export class LabelsController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
-  async findOne(@Param('id') id: string, @Res() res: Response) {
+  async findOne(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
+  ) {
     try {
-      this.options = {
-        ...this.options,
-        id: +id,
-      };
+      if (!req.user?.userId)
+        throw new UnauthorizedException('User not authenticated');
 
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'labels/findOne' }, this.options),
+        this.contactServiceClient.send(
+          { cmd: 'labels/findOne' },
+          {
+            id,
+            appId: req.user.appId,
+            userId: req.user.userId,
+            subscriberId: req.user.subscriberId,
+          },
+        ),
       );
 
       return success(
@@ -112,17 +148,28 @@ export class LabelsController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() body: { name: string; description?: string },
+    @Req() req: RequestWithUser,
     @Res() res: Response,
   ) {
     try {
+      if (!req.user?.userId)
+        throw new UnauthorizedException('User not authenticated');
+
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'labels/update' },
-          { id: Number(id), ...body, ...this.options },
+          {
+            ...body,
+            id: Number(id),
+            appId: req.user.appId,
+            userId: req.user.userId,
+            subscriberId: req.user.subscriberId,
+          },
         ),
       );
 
@@ -141,16 +188,27 @@ export class LabelsController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string, @Res() res: Response) {
+  async remove(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
+  ) {
     try {
-      this.options = {
-        ...this.options,
-        id: +id,
-      };
+      if (!req.user?.userId)
+        throw new UnauthorizedException('User not authenticated');
 
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'labels/remove' }, this.options),
+        this.contactServiceClient.send(
+          { cmd: 'labels/remove' },
+          {
+            id,
+            appId: req.user.appId,
+            userId: req.user.userId,
+            subscriberId: req.user.subscriberId,
+          },
+        ),
       );
 
       return success(

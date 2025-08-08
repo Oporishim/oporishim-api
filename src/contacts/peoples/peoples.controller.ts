@@ -72,18 +72,25 @@ export class PeoplesController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   async findAll(
     @Query() query: { skip: number; limit: number },
+    @Req() req: RequestWithUser,
     @Res() resp: Response,
   ) {
     try {
+      if (!req.user?.userId)
+        throw new UnauthorizedException('User not authenticated');
+
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
-          { cmd: 'individual/findAll' },
+          { cmd: 'peoples/findAll' },
           {
             ...query,
-            ...this.options,
+            userId: req.user.userId,
+            appId: req.user.appId,
+            subscriberId: req.user.subscriberId,
           },
         ),
       );
@@ -134,13 +141,26 @@ export class PeoplesController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
-  async findOne(@Res() resp: Response, @Param('id') id: string) {
+  async findOne(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+    @Res() resp: Response,
+  ) {
     try {
+      if (!req.user?.userId)
+        throw new UnauthorizedException('User not authenticated');
+
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
-          { cmd: 'individual/findOne' },
-          { id, ...this.options },
+          { cmd: 'peoples/findOne' },
+          {
+            id,
+            userId: req.user.userId,
+            appId: req.user.appId,
+            subscriberId: req.user.subscriberId,
+          },
         ),
       );
 
@@ -154,17 +174,28 @@ export class PeoplesController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Put(':id')
   async update(
     @Param('id') id: string,
     @Body() body: { firstName: string; lastName: string },
+    @Req() req: RequestWithUser,
     @Res() resp: Response,
   ) {
     try {
+      if (!req.user?.userId)
+        throw new UnauthorizedException('User not authenticated');
+
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
-          { cmd: 'individual/update' },
-          { id: Number(id), ...body, ...this.options },
+          { cmd: 'peoples/update' },
+          {
+            ...body,
+            id: Number(id),
+            userId: req.user.userId,
+            appId: req.user.appId,
+            subscriberId: req.user.subscriberId,
+          },
         ),
       );
 
@@ -178,149 +209,32 @@ export class PeoplesController {
     }
   }
 
-  // Delate one or many
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  async temporarilyDeleteOne(@Param('id') id: string, @Res() resp: Response) {
+  async remove(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+    @Res() resp: Response,
+  ) {
     try {
+      if (!req.user?.userId)
+        throw new UnauthorizedException('User not authenticated');
+
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
-          { cmd: 'individual/temporarilyDeleteOne' },
-          { id, ...this.options },
+          { cmd: 'peoples/remove' },
+          {
+            id,
+            userId: req.user.userId,
+            appId: req.user.appId,
+            subscriberId: req.user.subscriberId,
+          },
         ),
       );
 
       return success(
         resp,
         'People has been deleted temporarily!',
-        data,
-        HttpStatus.OK,
-      );
-    } catch (error: unknown) {
-      const serviceError = error as ServiceErrorInterface;
-      throw new HttpException(
-        serviceError,
-        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
-  @Delete('/permanently/:id')
-  async permanentlyDeleteOne(@Param('id') id: string, @Res() resp: Response) {
-    try {
-      const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send(
-          { cmd: 'individual/permanentlyDeleteOne' },
-          { id, ...this.options },
-        ),
-      );
-
-      return success(
-        resp,
-        'People has been deleted permanently!',
-        data,
-        HttpStatus.OK,
-      );
-    } catch (error: unknown) {
-      const serviceError = error as ServiceErrorInterface;
-      throw new HttpException(
-        serviceError,
-        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
-  @Post('/temporarilyDeleteAll')
-  async temporarilyDeleteAll(
-    @Body() body: { ids: number[] },
-    @Res() resp: Response,
-  ) {
-    try {
-      const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send(
-          { cmd: 'individual/temporarilyDeleteAll' },
-          body,
-        ),
-      );
-
-      return success(
-        resp,
-        'People has been deleted temporarily!',
-        data,
-        HttpStatus.OK,
-      );
-    } catch (error: unknown) {
-      const serviceError = error as ServiceErrorInterface;
-      throw new HttpException(
-        serviceError,
-        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
-  @Post('/permanentlyDeleteAll')
-  async permanentlyDeleteAll(
-    @Body() body: { ids: number[] },
-    @Res() resp: Response,
-  ) {
-    try {
-      const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send(
-          { cmd: 'individual/permanentlyDeleteAll' },
-          body,
-        ),
-      );
-
-      return success(
-        resp,
-        'Peoples has been deleted permanently!',
-        data,
-        HttpStatus.OK,
-      );
-    } catch (error: unknown) {
-      const serviceError = error as ServiceErrorInterface;
-      throw new HttpException(
-        serviceError,
-        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
-  // Recover one or many
-  @Get('/recover/:id')
-  async recoverOne(@Param('id') id: string, @Res() res: Response) {
-    try {
-      const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send(
-          { cmd: 'individual/recoverOne' },
-          { id: +id, ...this.options },
-        ),
-      );
-
-      return success(
-        res,
-        'People has been recovered successfully!',
-        data,
-        HttpStatus.OK,
-      );
-    } catch (error: unknown) {
-      const serviceError = error as ServiceErrorInterface;
-      throw new HttpException(
-        serviceError,
-        serviceError?.statusCode ?? HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
-  @Post('/recoverAll')
-  async recoverMany(@Body() body: { ids: number[] }, @Res() res: Response) {
-    try {
-      const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'individual/recoverAll' }, body),
-      );
-
-      return success(
-        res,
-        'Peoples has been recovered successfully!',
         data,
         HttpStatus.OK,
       );

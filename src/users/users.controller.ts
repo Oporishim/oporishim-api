@@ -13,7 +13,8 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { catchError, firstValueFrom } from 'rxjs';
 import { MICROSERVICES_CLIENTS } from 'src/constants';
-import { AuthGuard, RequestWithUser } from 'src/guards/auth/auth.guard';
+import { AuthGuard } from 'src/guards/auth/auth.guard';
+import { RequestWithUserInterface as RequestWithUser } from 'src/interfaces/request-with-user.interface';
 
 interface UserResponse {
   id: number;
@@ -52,6 +53,7 @@ export class UsersController {
     return await firstValueFrom(user);
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   getUser(@Param('id') id: number) {
     return this.accountServiceClient.send({ cmd: 'user/findOne' }, +id);

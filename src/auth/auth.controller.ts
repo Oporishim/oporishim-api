@@ -15,12 +15,10 @@ import { Response } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { MICROSERVICES_CLIENTS } from 'src/constants';
 import { AuthGuard } from 'src/guards/auth/auth.guard';
-import {
-  RefreshAuthGuard,
-  RequestWithUser,
-} from 'src/guards/refresh-auth/refresh-auth.guard';
+import { RefreshAuthGuard } from 'src/guards/refresh-auth/refresh-auth.guard';
 import { success } from 'src/helpers/response.helper';
 import { ServiceErrorInterface } from 'src/interfaces/response.interface';
+import { RequestWithUserInterface as RequestWithUser } from 'src/interfaces/request-with-user.interface';
 
 @Controller('auth')
 export class AuthController {

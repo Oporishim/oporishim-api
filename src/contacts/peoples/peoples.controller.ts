@@ -19,9 +19,10 @@ import { ClientProxy } from '@nestjs/microservices';
 import { Response } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { MICROSERVICES_CLIENTS } from 'src/constants';
-import { AuthGuard, RequestWithUser } from 'src/guards/auth/auth.guard';
+import { AuthGuard } from 'src/guards/auth/auth.guard';
 import { success } from 'src/helpers/response.helper';
 import { ServiceErrorInterface } from 'src/interfaces/response.interface';
+import { RequestWithUserInterface as RequestWithUser } from 'src/interfaces/request-with-user.interface';
 
 @Controller('contacts/peoples')
 export class PeoplesController {

@@ -11,33 +11,39 @@ import {
   Post,
   Query,
   Res,
+  Scope,
+  UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Response } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { MICROSERVICES_CLIENTS } from 'src/constants';
+import { User } from 'src/decorators/user.decorator';
+import { AuthGuard } from 'src/guards/auth/auth.guard';
 import { success } from 'src/helpers/response.helper';
+import { RequestWithUserInterface as RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { ServiceErrorInterface } from 'src/interfaces/response.interface';
 
-@Controller('contacts/businesses')
+@UseGuards(AuthGuard)
+@Controller({ path: 'contacts/businesses', scope: Scope.REQUEST })
 export class BusinessesController {
-  private options: Record<string, any>;
-
   constructor(
     @Inject(MICROSERVICES_CLIENTS.CONTACT_SERVICE)
     private readonly contactServiceClient: ClientProxy,
-  ) {
-    this.options = { businessId: 1, appId: 1 };
-  }
+  ) {}
 
   @Post()
   async create(
-    @Body() body: { name: string; email: string; phone: string },
+    @Body() body: any,
+    @User({ skip: ['role'] }) user: RequestWithUser,
     @Res() resp: Response,
   ) {
     try {
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'businesses/create' }, body),
+        this.contactServiceClient.send(
+          { cmd: 'businesses/create' },
+          { ...body, ...user },
+        ),
       );
       return success(
         resp,
@@ -54,21 +60,20 @@ export class BusinessesController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   async findAll(
     @Query()
     query: { skip: number; limit: number; businessId?: number; appId?: number },
     @Res() res: Response,
+    @User({ skip: ['role'] }) user: RequestWithUser,
   ) {
     try {
-      // Add business Id & App Id
-      const options = {
-        ...query,
-        ...this.options,
-      };
-
       const data = await firstValueFrom<Response>(
-        this.contactServiceClient.send({ cmd: 'businesses/findAll' }, options),
+        this.contactServiceClient.send(
+          { cmd: 'businesses/findAll' },
+          { ...query, ...user },
+        ),
       );
 
       return success(
@@ -86,18 +91,18 @@ export class BusinessesController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
-  async findOne(@Param('id') id: string, @Res() res: Response) {
+  async findOne(
+    @Param('id') id: string,
+    @Res() res: Response,
+    @User({ skip: ['role'] }) user: RequestWithUser,
+  ) {
     try {
-      this.options = {
-        ...this.options,
-        id: +id,
-      };
-
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'businesses/findOne' },
-          this.options,
+          { id, ...user },
         ),
       );
 
@@ -116,17 +121,19 @@ export class BusinessesController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() body: { name: string; description?: string },
+    @Body() body: any,
+    @User({ skip: ['role'] }) user: RequestWithUser,
     @Res() res: Response,
   ) {
     try {
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'businesses/update' },
-          { id: Number(id), ...body, ...this.options },
+          { id: Number(id), ...body, ...user },
         ),
       );
       return success(
@@ -144,13 +151,18 @@ export class BusinessesController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string, @Res() res: Response) {
+  async remove(
+    @Param('id') id: string,
+    @User({ skip: ['role'] }) user: RequestWithUser,
+    @Res() res: Response,
+  ) {
     try {
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'businesses/remove' },
-          { id: +id, ...this.options },
+          { id, ...user },
         ),
       );
 
@@ -169,13 +181,19 @@ export class BusinessesController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get('/recover/:id')
-  async recover(@Param('id') id: string, @Res() res: Response) {
+  async recover(
+    @Param('id') id: string,
+    @User({ skip: ['role', 'userId', 'appId'] })
+    user: RequestWithUser,
+    @Res() res: Response,
+  ) {
     try {
       const data = await firstValueFrom<Response>(
         this.contactServiceClient.send(
           { cmd: 'businesses/recover' },
-          { id: +id, ...this.options },
+          { id: +id, ...user },
         ),
       );
 

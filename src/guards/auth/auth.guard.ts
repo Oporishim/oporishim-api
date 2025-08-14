@@ -8,24 +8,8 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { MICROSERVICES_CLIENTS } from 'src/constants';
-
-export interface AuthVerifyResponse {
-  valid: boolean;
-  subscriberId: string | number;
-  userId: string;
-  appId: string;
-  role?: string;
-}
-
-export interface RequestWithUser {
-  headers: { authorization?: string };
-  user?: {
-    subscriberId: string | number;
-    userId: string | number;
-    appId: string | number;
-    role?: string;
-  };
-}
+import { AuthVerifyResponseInterface } from 'src/interfaces/auth-verify-response.interface';
+import { RequestWithUserInterface as RequestWithUser } from 'src/interfaces/request-with-user.interface';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -43,7 +27,7 @@ export class AuthGuard implements CanActivate {
     if (!authHeader) throw new UnauthorizedException('Missing token!');
 
     const token = authHeader.split(' ')[1];
-    const result = await firstValueFrom<AuthVerifyResponse>(
+    const result = await firstValueFrom<AuthVerifyResponseInterface>(
       this.authServiceClient.send({ cmd: 'auth/validate-token' }, token),
     );
 
